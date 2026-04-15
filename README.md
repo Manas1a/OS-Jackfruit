@@ -1,11 +1,8 @@
 Multi-Container Runtime with Kernel Memory Monitor
 
 1. Team Information
-
 Name	SRN
-
 Manasa Bhaktha S	PES1UG24CS258
-
 Mridhini M R	PES1UG24CS277
 
 2. Project Overview
