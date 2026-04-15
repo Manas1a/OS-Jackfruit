@@ -235,13 +235,3 @@ Tradeoff: Requires kernel-space programming complexity.
 
 Justification: Ensures reliable enforcement and accurate memory measurement.
 
-Screenshots
-
-### Multi Container Supervision
-![Multi Container](screenshots/multi-container.jpeg)
-
-### Metadata Tracking
-![Container PS](screenshots/container-ps.jpeg)
-
-### Logging Pipeline
-![Logging](screenshots/logging.jpe)
