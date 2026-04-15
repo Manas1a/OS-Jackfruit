@@ -1,45 +1,73 @@
 Multi-Container Runtime with Kernel Memory Monitor
-
-Team Information
-
+1. Team Information
 Name	SRN
-Manasa	PES1UG24CS258
+Manasa Bhaktha S	PES1UG24CS258
 Mridhini M R	PES1UG24CS277
-Build, Load and Run Instructions
+2. Project Overview
 
-This project was tested on **Ubuntu 22.04/24.04.
+This project implements a lightweight container runtime in C that supports running multiple isolated containers simultaneously under a long-running supervisor process. The runtime uses Linux namespaces to provide process and filesystem isolation, and a kernel module to monitor container memory usage.
+
+Key features include:
+
+Multi-container supervision
+Namespace-based isolation
+Bounded-buffer logging system
+Kernel memory monitoring with soft and hard limits
+CLI interface for container management
+Scheduling experiments using CPU, memory, and I/O workloads
+
+The project demonstrates core operating system concepts including process lifecycle management, interprocess communication, synchronization, memory monitoring, and scheduling behavior.
+
+3. Build, Load, and Run Instructions
+
+The project was tested on **Ubuntu 22.04/24.04.
 
 Install Dependencies
 sudo apt update
 sudo apt install build-essential linux-headers-$(uname -r)
-Build Project
+Build the Project
+
+Navigate to the boilerplate directory:
+
 cd boilerplate
 make
 
 This builds:
 
-engine (container runtime)
-monitor.ko (kernel module)
-workload programs
-Load Kernel Module
+engine – container runtime and supervisor
+monitor.ko – kernel memory monitor
+cpu_hog, memory_hog, io_pulse – workload programs
+Load the Kernel Module
 sudo insmod monitor.ko
 
-Verify:
+Verify the device:
 
 ls -l /dev/container_monitor
-Start Supervisor
+Start the Supervisor
 sudo ./engine supervisor ./rootfs-base
-Create Container Root Filesystems
+
+The supervisor process manages container creation and lifecycle.
+
+Create Container Filesystems
 cp -a ./rootfs-base ./rootfs-alpha
 cp -a ./rootfs-base ./rootfs-beta
+
+Each container requires its own writable filesystem.
+
 Start Containers
+
+In another terminal:
+
 sudo ./engine start alpha ./rootfs-alpha /bin/sh --soft-mib 48 --hard-mib 80
 sudo ./engine start beta ./rootfs-beta /bin/sh --soft-mib 64 --hard-mib 96
 List Running Containers
 sudo ./engine ps
+
+This command shows container metadata including PID, name, and resource limits.
+
 View Container Logs
 sudo ./engine logs alpha
-Run Workload Experiments
+Run Workloads
 
 CPU workload:
 
@@ -52,188 +80,170 @@ Memory workload:
 I/O workload:
 
 ./io_pulse
+
+To run workloads inside containers, copy them into the container filesystem before launch:
+
+cp memory_hog ./rootfs-alpha/
 Stop Containers
 sudo ./engine stop alpha
 sudo ./engine stop beta
 Inspect Kernel Logs
 dmesg | tail
+
+This shows soft-limit warnings and hard-limit enforcement events.
+
 Unload Kernel Module
 sudo rmmod monitor
-Engineering Analysis
+4. Screenshots
+Multi-container supervision
 
+Shows two containers running under a single supervisor.
+
+Container metadata tracking
+
+Displays metadata such as PID, container name, and memory limits.
+
+Bounded-buffer logging
+
+Shows log messages processed through the logging pipeline.
+
+CLI and IPC
+
+Demonstrates communication between the CLI and the supervisor.
+
+Soft memory limit warning
+
+Kernel log showing a soft memory limit warning.
+
+Hard limit enforcement
+
+Kernel log showing container termination after exceeding the hard limit.
+
+Scheduling experiment
+
+Comparison of CPU-bound and I/O-bound workload behavior.
+
+Clean teardown
+
+Shows that containers exit cleanly without leaving zombie processes.
+
+5. Engineering Analysis
 Isolation Mechanisms
 
-Container isolation is implemented using Linux namespaces, a kernel feature provided by Linux.
+The runtime uses Linux namespaces to provide isolation between containers.
 
 Three namespaces are used:
 
-PID Namespace
+PID namespace
+Each container has its own process ID space. Processes inside the container see PID 1 as the init process.
 
-Each container has its own process ID space.
-Processes inside the container see PID 1 as their init process.
-
-UTS Namespace
-
+UTS namespace
 Allows each container to have its own hostname.
-Provides isolation of system identity.
 
-Mount Namespace
+Mount namespace
+Provides filesystem isolation so containers see a different root filesystem.
 
-Each container sees a different filesystem tree.
-Prevents containers from accessing host files.
+Filesystem isolation is implemented using chroot or pivot_root, which changes the root directory visible to a process.
 
-Filesystem isolation is achieved using chroot or pivot_root, which changes the process root directory so that the container cannot access files outside its rootfs.
-
-However, some resources remain shared with the host kernel:
-
-CPU scheduler
-physical memory
-kernel modules
-network stack (unless additional namespaces are used)
-
-This demonstrates how containers provide process isolation without full hardware virtualization.
+However, containers still share the same host kernel. This means the CPU scheduler, memory subsystem, and kernel modules remain shared across containers.
 
 Supervisor and Process Lifecycle
 
-The supervisor process acts as the parent process for all containers.
+The runtime uses a long-running supervisor process to manage containers.
 
-This design is useful because:
+The supervisor performs several responsibilities:
 
-It centralizes container lifecycle management.
-It maintains metadata about running containers.
-It handles process reaping when containers exit.
+creating container processes
+maintaining container metadata
+tracking container state
+reaping terminated containers
 
-When a container is started:
+When a container is created, the supervisor calls clone() with namespace flags. The new process becomes the container’s init process.
 
-The supervisor calls clone() to create a child process.
-The child enters new namespaces.
-The container workload begins execution.
+The supervisor maintains parent-child relationships and uses waitpid() to reap exited processes, preventing zombie processes.
 
-The supervisor maintains parent-child relationships and uses waitpid() to reap terminated containers, preventing zombie processes.
-
-Signals can also be propagated from the supervisor to containers for operations such as stopping or killing them.
+Signals are used to stop or terminate containers when necessary.
 
 IPC, Threads, and Synchronization
 
 The system uses multiple IPC mechanisms.
 
-Example IPC mechanisms include:
+CLI communication with the supervisor occurs using pipes or sockets.
+Communication with the kernel module occurs through ioctl calls.
 
-UNIX domain sockets or pipes for CLI-supervisor communication
-shared memory for logging
-ioctl communication between user space and kernel module
-Bounded Buffer Logging
+The logging system uses a bounded-buffer design implemented with the producer-consumer model.
 
-The logging system uses a producer-consumer model.
+Producers generate log messages, while a consumer thread writes them to disk.
 
-Components:
+Without synchronization, race conditions could occur where multiple threads attempt to write to the buffer simultaneously, causing corrupted log data.
 
-Producers: container runtime threads generating log messages
-Consumer: logging thread writing logs to disk
+To prevent this, synchronization primitives such as mutexes and condition variables are used.
 
-Synchronization primitives used:
+The bounded buffer prevents overflow by forcing producers to wait when the buffer is full, ensuring that no log messages are lost.
 
-mutex for mutual exclusion
-condition variables for signaling
-
-Without synchronization:
-
-race conditions could occur where multiple threads write to the buffer simultaneously
-logs could become corrupted
-data could be overwritten
-
-The bounded buffer prevents overflow by limiting buffer size and forcing producers to wait if the buffer is full.
-
-This prevents:
-
-lost log messages
-data corruption
-deadlock situations
 Memory Management and Enforcement
 
-The kernel monitor measures RSS (Resident Set Size).
+The kernel module monitors container memory usage using RSS (Resident Set Size).
 
-RSS represents:
+RSS measures the amount of physical memory currently used by a process.
 
-the amount of physical memory currently used by a process.
+However, RSS does not include swapped memory or some shared memory mappings.
 
-However, RSS does not include:
+Two types of memory limits are implemented:
 
-swapped memory
-shared pages counted multiple times
+Soft limit
+When exceeded, a warning message is generated but the container continues running.
 
-Two types of limits are used:
+Hard limit
+When exceeded, the container process is terminated.
 
-Soft Limit
+Memory enforcement must occur in kernel space because the kernel has direct access to process memory information and can enforce limits reliably.
 
-generates a warning
-allows the process to continue
+User-space monitoring alone could be bypassed or delayed.
 
-Hard Limit
-
-triggers container termination
-protects system stability
-
-Memory enforcement must occur in kernel space because:
-
-the kernel has direct visibility into process memory usage
-user-space monitoring can be bypassed or delayed
-kernel enforcement ensures reliable resource control
 Scheduling Behavior
 
-Linux uses a scheduler designed to balance:
-
-fairness
-responsiveness
-throughput
-
-CPU-bound workloads such as cpu_hog consume CPU continuously.
-
-I/O-bound workloads such as io_pulse frequently block while waiting for I/O.
+Linux uses a scheduling algorithm designed to balance fairness, responsiveness, and throughput.
 
 During experiments:
 
-CPU-bound tasks receive larger CPU slices
-I/O-bound tasks frequently yield the CPU
+CPU-bound workloads such as cpu_hog continuously consume CPU resources.
 
-The scheduler prioritizes responsiveness by quickly resuming I/O-bound processes after blocking operations.
+I/O-bound workloads such as io_pulse frequently block while waiting for I/O operations.
 
-These behaviors demonstrate how Linux scheduling adapts to different workload characteristics.
+The scheduler prioritizes responsiveness by allowing I/O-bound processes to resume quickly after blocking.
 
-Scheduler Experiment Results
+These results demonstrate how Linux scheduling adapts dynamically to different workload types.
 
-
-Design Decisions
-
+6. Design Decisions and Tradeoffs
 Namespace Isolation
 
-Choice: Use PID, UTS, and mount namespaces.
-
-Tradeoff: Full network isolation was not implemented.
-
-Justification: These namespaces provide sufficient process and filesystem isolation for this project while keeping implementation manageable.
+Choice: PID, UTS, and mount namespaces.
+Tradeoff: network isolation was not implemented.
+Justification: these namespaces provide sufficient process and filesystem isolation while keeping implementation manageable.
 
 Supervisor Architecture
 
-Choice: Single long-running supervisor process.
+Choice: single long-running supervisor.
+Tradeoff: central point of failure.
+Justification: simplifies container lifecycle management and metadata tracking.
 
-Tradeoff: Introduces a central point of failure.
+Logging System
 
-Justification: Simplifies lifecycle management and metadata tracking.
-
-IPC and Logging
-
-Choice: Producer-consumer bounded buffer.
-
-Tradeoff: Requires synchronization primitives.
-
-Justification: Prevents data corruption and improves logging throughput.
+Choice: bounded-buffer producer-consumer design.
+Tradeoff: requires synchronization primitives.
+Justification: prevents log corruption and improves logging efficiency.
 
 Kernel Memory Monitor
 
-Choice: Memory enforcement implemented in kernel module.
+Choice: memory monitoring implemented as a kernel module.
+Tradeoff: increased implementation complexity.
+Justification: kernel-space monitoring provides accurate and reliable memory enforcement.
 
-Tradeoff: Requires kernel-space programming complexity.
+7. Scheduler Experiment Results
+Workload	CPU Usage	Observed Behavior
+cpu_hog	High	Continuous CPU consumption
+io_pulse	Low	Frequent blocking and rescheduling
+memory_hog	Moderate	Memory-intensive workload
 
-Justification: Ensures reliable enforcement and accurate memory measurement.
-
+The results demonstrate how Linux scheduling balances CPU allocation between different workload types while maintaining fairness and responsiveness.
