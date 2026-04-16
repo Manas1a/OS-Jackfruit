@@ -1,14 +1,5 @@
 # Multi-Container Runtime with Kernel Memory Monitor
-=======
-Multi-Container Runtime with Kernel Memory Monitor
 
-1. Team Information
-Name	SRN
-Manasa Bhaktha S	PES1UG24CS258
-Mridhini M R	PES1UG24CS277
-
-2. Project Overview
->>>>>>> 47233e1de0905a53c7026855d247c01bab22e938
 
 ## Team Information
 
@@ -205,7 +196,7 @@ sudo rmmod monitor
 
 ## Multi-Container Supervision
 
-![1](images/Picture1.png)
+![1](images/Picture1.jpg)
 
 Shows two containers running under a single supervisor process.
 
@@ -213,9 +204,9 @@ Shows two containers running under a single supervisor process.
 
 ## Container Metadata Tracking
 
-![2a](images/Picture2a.jpg)
+![2A](images/Picture2A.jpg)
 
-![2b](images/Picture2b.jpg)
+![2B](images/Picture2B.jpg)
 
 Shows container metadata including PID, name, and memory limits.
 
@@ -223,9 +214,9 @@ Shows container metadata including PID, name, and memory limits.
 
 ## Bounded Buffer Logging
 
-![3a](images/Picture3a.jpg)
+![3a](images/Picture3A.jpg)
 
-![3b](images/Picture3b.jpg)
+![3b](images/Picture3B.jpg)
 
 Shows log messages processed through the logging pipeline.
 
