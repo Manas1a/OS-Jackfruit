@@ -213,9 +213,9 @@ Shows two containers running under a single supervisor process.
 
 ## Container Metadata Tracking
 
-![2a](images/Picture2a.png)
+![2a](images/Picture2a.jpg)
 
-![2b](images/Picture2b.png)
+![2b](images/Picture2b.jpg)
 
 Shows container metadata including PID, name, and memory limits.
 
@@ -223,9 +223,9 @@ Shows container metadata including PID, name, and memory limits.
 
 ## Bounded Buffer Logging
 
-![3a](images/Picture3a.png)
+![3a](images/Picture3a.jpg)
 
-![3b](images/Picture3b.png)
+![3b](images/Picture3b.jpg)
 
 Shows log messages processed through the logging pipeline.
 
@@ -233,9 +233,9 @@ Shows log messages processed through the logging pipeline.
 
 ## CLI and IPC Communication
 
-![4a](images/Picture4a.png)
+![4a](images/Picture4a.jpg)
 
-![4b](images/Picture4b.png)
+![4b](images/Picture4b.jpg)
 
 Shows CLI commands interacting with the supervisor.
 
@@ -243,7 +243,7 @@ Shows CLI commands interacting with the supervisor.
 
 ## Soft Memory Limit Warning
 
-![5](images/Picture5.png)
+![5](images/Picture5.jpg)
 
 Shows kernel log warning when container exceeds soft memory limit.
 
@@ -251,9 +251,9 @@ Shows kernel log warning when container exceeds soft memory limit.
 
 ## Hard Memory Limit Enforcement
 
-![6a](images/Picture6a.png)
+![6a](images/Picture6a.jpg)
 
-![6b](images/Picture6b.png)
+![6b](images/Picture6b.jpg)
 
 Shows container termination when memory usage exceeds the hard limit.
 
@@ -261,7 +261,7 @@ Shows container termination when memory usage exceeds the hard limit.
 
 ## Scheduling Experiment
 
-![7](images/Picture7.png)
+![7](images/Picture7.jpg)
 
 Shows behavior differences between CPU-bound and I/O-bound workloads.
 
@@ -269,9 +269,9 @@ Shows behavior differences between CPU-bound and I/O-bound workloads.
 
 ## Clean Teardown
 
-![8a](images/Picture8a.png)
+![8a](images/Picture8a.jpg)
 
-![8b](images/Picture8b.png)
+![8b](images/Picture8b.jpg)
 
 Shows containers exiting cleanly without zombie processes.
 
