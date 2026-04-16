@@ -2,6 +2,14 @@
 =======
 Multi-Container Runtime with Kernel Memory Monitor
 
+1. Team Information
+Name	SRN
+Manasa Bhaktha S	PES1UG24CS258
+Mridhini M R	PES1UG24CS277
+
+2. Project Overview
+>>>>>>> 47233e1de0905a53c7026855d247c01bab22e938
+
 ## Team Information
 
 | Name | SRN |
@@ -193,6 +201,81 @@ sudo rmmod monitor
 
 ---
 
+# Screenshots
+
+## Multi-Container Supervision
+
+![1](images/Picture1.png)
+
+Shows two containers running under a single supervisor process.
+
+---
+
+## Container Metadata Tracking
+
+![2a](images/Picture2a.png)
+
+![2b](images/Picture2b.png)
+
+Shows container metadata including PID, name, and memory limits.
+
+---
+
+## Bounded Buffer Logging
+
+![3a](images/Picture3a.png)
+
+![3b](images/Picture3b.png)
+
+Shows log messages processed through the logging pipeline.
+
+---
+
+## CLI and IPC Communication
+
+![4a](images/Picture4a.png)
+
+![4b](images/Picture4b.png)
+
+Shows CLI commands interacting with the supervisor.
+
+---
+
+## Soft Memory Limit Warning
+
+![5](images/Picture5.png)
+
+Shows kernel log warning when container exceeds soft memory limit.
+
+---
+
+## Hard Memory Limit Enforcement
+
+![6a](images/Picture6a.png)
+
+![6b](images/Picture6b.png)
+
+Shows container termination when memory usage exceeds the hard limit.
+
+---
+
+## Scheduling Experiment
+
+![7](images/Picture7.png)
+
+Shows behavior differences between CPU-bound and I/O-bound workloads.
+
+---
+
+## Clean Teardown
+
+![8a](images/Picture8a.png)
+
+![8b](images/Picture8b.png)
+
+Shows containers exiting cleanly without zombie processes.
+
+---
 
 # Engineering Analysis
 
